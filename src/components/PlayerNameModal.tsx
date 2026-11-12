@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { User, Sparkles, Dices, Check, X } from 'lucide-react';
+import { User, Sparkles, Dices, Check, X, ShieldCheck, Swords } from 'lucide-react';
 import { sound } from '../audio/soundEffects';
 
 interface PlayerNameModalProps {
@@ -9,11 +9,15 @@ interface PlayerNameModalProps {
   initialName?: string;
   initialAvatar?: string;
   canDismiss?: boolean;
+  isInvited?: boolean;
+  invitedGameTitle?: string;
+  invitedRoomId?: string;
 }
 
 const AVATAR_OPTIONS = ['🥷', '👾', '🚀', '👑', '🐉', '⚡', '🦊', '🐯', '🐼', '🎯', '🔥', '💎'];
 
 const RANDOM_NAMES = [
+  'Chiến Hữu 88',
   'Dân Chơi Neon',
   'Kỳ Thủ Sài Gòn',
   'Chiến Binh Không Gian',
@@ -24,8 +28,7 @@ const RANDOM_NAMES = [
   'Phù Thủy 2048',
   'Kỳ Vương Hà Nội',
   'Chiến Thần Neon',
-  'Cao Thủ Ẩn Danh',
-  'Bé Bự Siêu Đẳng'
+  'Cao Thủ Ẩn Danh'
 ];
 
 export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
@@ -34,9 +37,17 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
   onSave,
   initialName = '',
   initialAvatar = '🥷',
-  canDismiss = false
+  canDismiss = false,
+  isInvited = false,
+  invitedGameTitle = '',
+  invitedRoomId = ''
 }) => {
-  const [name, setName] = useState(initialName);
+  // If invited and no name yet, provide a quick default name so user can join in 1 click
+  const defaultInvitedName = isInvited && !initialName
+    ? `Chiến Hữu ${Math.floor(100 + Math.random() * 900)}`
+    : initialName;
+
+  const [name, setName] = useState(defaultInvitedName);
   const [avatar, setAvatar] = useState(initialAvatar);
   const [error, setError] = useState('');
 
@@ -87,21 +98,39 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
         <div className="relative z-10 flex flex-col items-center text-center">
           {/* Header Icon */}
           <div className="relative mb-3">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-4xl shadow-lg shadow-cyan-500/30 border border-cyan-300/40 transform transition-transform hover:scale-105">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-500 via-indigo-600 to-rose-500 flex items-center justify-center text-4xl shadow-lg shadow-cyan-500/30 border border-cyan-300/40 transform transition-transform hover:scale-105">
               {avatar}
             </div>
-            <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-cyan-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
-              VIP
-            </span>
+            {isInvited ? (
+              <span className="absolute -bottom-1 -right-2 px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-black uppercase tracking-wider flex items-center gap-1 shadow-md">
+                <Swords className="w-3 h-3" />
+                ĐỐI ĐẦU
+              </span>
+            ) : (
+              <span className="absolute -bottom-1 -right-1 px-2 py-0.5 rounded-full bg-cyan-500 text-slate-950 text-[10px] font-black uppercase tracking-wider">
+                VIP
+              </span>
+            )}
           </div>
 
           <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mb-1 flex items-center gap-2">
-            <span>Chào Mừng Dân Chơi!</span>
+            <span>
+              {isInvited ? 'Bạn Được Mời Thi Đấu!' : 'Chào Mừng Dân Chơi!'}
+            </span>
             <Sparkles className="w-5 h-5 text-amber-400 animate-pulse" />
           </h2>
-          <p className="text-xs sm:text-sm text-slate-400 mb-5 max-w-xs">
-            Hãy chọn biểu tượng và đặt tên người chơi để bước vào thế giới trò chơi đối kháng đỉnh cao.
+
+          <p className="text-xs sm:text-sm text-slate-400 mb-3 max-w-xs leading-relaxed">
+            {isInvited
+              ? `Bạn vừa nhận được lời mời vào bàn đấu ${invitedGameTitle || 'trực tuyến'}! Chỉ cần đặt tên là vào chơi ngay.`
+              : 'Hãy chọn biểu tượng và đặt tên người chơi để bước vào thế giới trò chơi đối kháng đỉnh cao.'}
           </p>
+
+          {/* Zero-login reassurance pill */}
+          <div className="mb-4 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-950/60 border border-emerald-500/40 text-[11px] text-emerald-300 font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5" />
+            <span>Vào chơi trực tiếp • Không cần đăng nhập • Không tạo tài khoản</span>
+          </div>
 
           <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
             {/* Avatar picker */}
@@ -135,7 +164,7 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-slate-300 flex items-center gap-1.5">
                   <User className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>Tên người chơi:</span>
+                  <span>Tên người chơi của bạn:</span>
                 </label>
                 <button
                   type="button"
@@ -143,7 +172,7 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
                   className="text-[11px] text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer font-medium"
                 >
                   <Dices className="w-3.5 h-3.5" />
-                  <span>Gợi ý tên vui</span>
+                  <span>Đổi tên ngẫu nhiên</span>
                 </button>
               </div>
 
@@ -155,7 +184,7 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
                     setName(e.target.value);
                     if (error) setError('');
                   }}
-                  placeholder="Nhập tên người chơi (ví dụ: Dân Chơi Pro)..."
+                  placeholder="Nhập tên người chơi (ví dụ: Chiến Hữu)..."
                   maxLength={20}
                   autoFocus
                   className="w-full px-4 py-3 bg-slate-950/80 border border-slate-700 focus:border-cyan-400 rounded-xl text-white text-sm font-semibold placeholder:text-slate-500 focus:outline-none transition-colors shadow-inner"
@@ -175,7 +204,9 @@ export const PlayerNameModal: React.FC<PlayerNameModalProps> = ({
               className="w-full mt-2 py-3.5 px-4 bg-gradient-to-r from-cyan-500 via-teal-400 to-indigo-500 hover:from-cyan-400 hover:to-indigo-400 text-slate-950 font-black rounded-xl text-sm transition-all shadow-lg shadow-cyan-500/25 active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer"
             >
               <Check className="w-4 h-4 stroke-[3]" />
-              <span>Vào Khu Trò Chơi Ngay</span>
+              <span>
+                {isInvited ? '🚀 Vào Bàn Chơi Ngay (Không Cần Đăng Nhập)' : 'Vào Khu Trò Chơi Ngay'}
+              </span>
             </button>
           </form>
         </div>

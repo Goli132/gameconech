@@ -692,6 +692,15 @@ export default function App() {
         initialName={playerName}
         initialAvatar={playerAvatar}
         canDismiss={canDismissPlayerModal}
+        isInvited={!!initialRoom}
+        invitedGameTitle={
+          initialRoom?.game === 'caro'
+            ? 'Cờ Ca-rô 5 Quân'
+            : initialRoom?.game === 'cotuong'
+            ? 'Cờ Tướng Đấu Trí'
+            : ''
+        }
+        invitedRoomId={initialRoom?.roomId || ''}
       />
 
       {/* 2. In-Game Menu Drawer (KHI BẤM DẤU "...") */}
