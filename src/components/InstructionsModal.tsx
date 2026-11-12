@@ -89,12 +89,13 @@ export const InstructionsModal: React.FC<InstructionsModalProps> = ({
           </div>
 
           <div className="bg-slate-950/60 rounded-xl p-4 border border-slate-800/80">
-            <h4 className="text-sm font-semibold text-amber-300 mb-2 flex items-center gap-2">
-              <Zap className="w-4 h-4" /> Mẹo ghi điểm cao
+            <h4 className="text-sm font-semibold text-rose-300 mb-2 flex items-center gap-2">
+              <span>🎯</span> Cờ Ca-rô & Cờ Tướng
             </h4>
-            <p className="text-xs text-slate-300 leading-relaxed">
-              Hãy thu thập thật nhiều các biểu tượng bổ trợ (Khiên, Tia đạn 3 hướng, Trái cây vàng) và duy trì chuỗi combo để nhân gấp bội số điểm!
-            </p>
+            <ul className="text-xs text-slate-300 space-y-1.5 list-disc list-inside">
+              <li><span className="font-medium text-white">Cờ Ca-rô:</span> Tạo chuỗi 5 quân liên tiếp (ngang, dọc, chéo) để chiến thắng. Hỗ trợ đấu với Máy hoặc 2 Người.</li>
+              <li><span className="font-medium text-white">Cờ Tướng:</span> Bấm vào quân cờ để xem gợi ý các chấm xanh lá có thể đi. Luật chuẩn: Mã có cản chân, Tượng cản mắt, Pháo cần ngòi nhảy, Tướng trong Cung. Bắt Tướng đối phương để thắng!</li>
+            </ul>
           </div>
         </div>
 

@@ -1,6 +1,8 @@
 {
-  "name": "Khu Trò Chơi Arcade - Mini Games Hub",
-  "description": "Bộ sưu tập game web cổ điển hiện đại mượt mà: Bắn Phi Thuyền Không Gian, Rắn Săn Mồi và Đập Gạch Neon với hiệu ứng âm thanh và đồ họa bắt mắt.",
+  "name": "Game Cổ Đánh Đỗ Dân Chơi",
+  "description": "Bộ sưu tập game web kinh điển: Cờ Tướng Đấu Trí, Cờ Ca-rô 5 Quân, Bắn Phi Thuyền Không Gian, Rắn Săn Mồi và Đập Gạch Neon với âm thanh và đồ họa bắt mắt.",
   "requestFramePermissions": [],
-  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
 }

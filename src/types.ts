@@ -12,7 +12,7 @@ export interface GameItem {
   badge?: string;
   plays: number;
   rating: number;
-  iconType: 'space' | 'snake' | 'brick' | 'flappy' | '2048' | 'custom';
+  iconType: 'space' | 'snake' | 'brick' | 'flappy' | '2048' | 'caro' | 'cotuong' | 'custom';
   embedUrl?: string; // For custom HTML5 games added by creator
   isCustom?: boolean;
 }

@@ -257,6 +257,68 @@ class SoundEngine {
     }
   }
 
+  // Wood piece clack sound for Chess / Caro
+  public playWoodClack() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      // High frequency snap
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.setValueAtTime(620, now);
+      osc.frequency.exponentialRampToValueAtTime(80, now + 0.04);
+      gain.gain.setValueAtTime(0.4, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.04);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.045);
+
+      // Low frequency body knock
+      const osc2 = this.ctx.createOscillator();
+      const gain2 = this.ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(180, now);
+      osc2.frequency.exponentialRampToValueAtTime(60, now + 0.06);
+      gain2.gain.setValueAtTime(0.35, now);
+      gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.06);
+      osc2.connect(gain2);
+      gain2.connect(this.masterGain);
+      osc2.start(now);
+      osc2.stop(now + 0.065);
+    } catch {
+      // Ignore
+    }
+  }
+
+  // Dramatic "Chiếu tướng" alert sound
+  public playCheck() {
+    if (this.isMuted) return;
+    this.initContext();
+    if (!this.ctx || !this.masterGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(440, now);
+      osc.frequency.linearRampToValueAtTime(880, now + 0.15);
+      gain.gain.setValueAtTime(0.3, now);
+      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+      osc.connect(gain);
+      gain.connect(this.masterGain);
+      osc.start(now);
+      osc.stop(now + 0.22);
+    } catch {
+      // Ignore
+    }
+  }
+
   // Level up / Victory fanfare
   public playVictory() {
     if (this.isMuted) return;

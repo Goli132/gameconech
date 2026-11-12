@@ -15,6 +15,8 @@ import { SnakeGame } from './games/SnakeGame';
 import { BrickBreakerGame } from './games/BrickBreakerGame';
 import { FlappyNeonGame } from './games/FlappyNeonGame';
 import { Puzzle2048Game } from './games/Puzzle2048Game';
+import { CaroGame } from './games/CaroGame';
+import { CoTuongGame } from './games/CoTuongGame';
 import { CustomEmbedGame } from './games/CustomEmbedGame';
 import { Rocket, Trophy, Flame, Play, Star, Sparkles, Search, ArrowLeft, Gamepad2 } from 'lucide-react';
 
@@ -71,6 +73,26 @@ const INITIAL_GAMES: GameItem[] = [
     plays: 740,
     rating: 4.8,
     iconType: '2048'
+  },
+  {
+    id: 'caro',
+    title: 'Cờ Ca-rô 5 Quân',
+    category: 'puzzle',
+    description: 'Đấu trí bàn cờ ca-rô 15x15 chuẩn quốc tế cùng máy tính thông minh hoặc thi đấu 2 người chơi.',
+    badge: 'Dân gian',
+    plays: 1820,
+    rating: 4.9,
+    iconType: 'caro'
+  },
+  {
+    id: 'cotuong',
+    title: 'Cờ Tướng Đấu Trí',
+    category: 'puzzle',
+    description: 'Kỳ đài cờ tướng với Cung tướng, Sông Sở Hà Hán Giới, luật chuẩn Xe Pháo Mã và trợ lý AI tính nước.',
+    badge: 'Kỳ nghệ đỉnh cao',
+    plays: 2150,
+    rating: 5.0,
+    iconType: 'cotuong'
   }
 ];
 
@@ -168,6 +190,8 @@ export default function App() {
       case 'brick': return <span className="text-xl">🧱</span>;
       case 'flappy': return <span className="text-xl">🐥</span>;
       case '2048': return <span className="text-lg font-bold text-yellow-400">2048</span>;
+      case 'caro': return <span className="text-lg font-bold text-rose-500">❌⭕</span>;
+      case 'cotuong': return <span className="text-lg font-bold text-amber-300">帥</span>;
       default: return <Gamepad2 className="w-5 h-5 text-emerald-400" />;
     }
   };
@@ -305,6 +329,20 @@ export default function App() {
                 <Puzzle2048Game
                   onGameOver={handleGameOver}
                   highScore={highScores['2048'] || 0}
+                />
+              )}
+
+              {activeGame === 'caro' && (
+                <CaroGame
+                  onGameOver={handleGameOver}
+                  highScore={highScores.caro || 0}
+                />
+              )}
+
+              {activeGame === 'cotuong' && (
+                <CoTuongGame
+                  onGameOver={handleGameOver}
+                  highScore={highScores.cotuong || 0}
                 />
               )}
 
