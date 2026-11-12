@@ -3,6 +3,7 @@ import { sound } from '../audio/soundEffects';
 import { RotateCcw, Volume2, VolumeX, Undo2, Bot, Users, Trophy, ShieldAlert, Globe, Share2, MessageSquare } from 'lucide-react';
 import { roomManager, MultiplayerRole } from '../multiplayer/roomManager';
 import { InviteFriendModal } from '../components/InviteFriendModal';
+import { OnlineLobbyModal } from '../components/OnlineLobbyModal';
 
 interface CoTuongGameProps {
   onGameOver: (score: number) => void;
@@ -852,15 +853,22 @@ export const CoTuongGame: React.FC<CoTuongGameProps> = ({ onGameOver, highScore,
         )}
       </div>
 
-      {/* Invite Modal */}
-      <InviteFriendModal
+      {/* Online Lobby & Invite Modal */}
+      <OnlineLobbyModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
+        gameId="cotuong"
         gameTitle="Cờ Tướng Đấu Trí"
+        currentRoomId={roomId}
         inviteUrl={inviteUrl}
-        roomId={roomId}
-        isConnected={onlineConnected}
-        onSendChat={(text) => roomManager.sendChat(text)}
+        myUserName={typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player_name') || 'Dân Chơi' : 'Dân Chơi'}
+        myUserAvatar={typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player_avatar') || '🥷' : '🥷'}
+        onInviteAccepted={(rId) => {
+          setMode('online');
+          setMyRole('host');
+          setRoomId(rId);
+          setOnlineConnected(true);
+        }}
       />
 
       <div className="w-full max-w-[620px] mt-2.5 text-center text-xs text-slate-400">

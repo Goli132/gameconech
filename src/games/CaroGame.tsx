@@ -3,6 +3,7 @@ import { sound } from '../audio/soundEffects';
 import { RotateCcw, Volume2, VolumeX, Undo2, Trophy, Bot, Users, Globe, Share2, MessageSquare } from 'lucide-react';
 import { roomManager, MultiplayerRole } from '../multiplayer/roomManager';
 import { InviteFriendModal } from '../components/InviteFriendModal';
+import { OnlineLobbyModal } from '../components/OnlineLobbyModal';
 
 interface CaroGameProps {
   onGameOver: (score: number) => void;
@@ -676,15 +677,22 @@ export const CaroGame: React.FC<CaroGameProps> = ({ onGameOver, highScore, initi
         </div>
       </div>
 
-      {/* Invite Modal */}
-      <InviteFriendModal
+      {/* Online Lobby & Invite Modal */}
+      <OnlineLobbyModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
+        gameId="caro"
         gameTitle="Cờ Ca-rô 5 Quân"
+        currentRoomId={roomId}
         inviteUrl={inviteUrl}
-        roomId={roomId}
-        isConnected={onlineConnected}
-        onSendChat={handleSendChat}
+        myUserName={typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player_name') || 'Dân Chơi' : 'Dân Chơi'}
+        myUserAvatar={typeof localStorage !== 'undefined' ? localStorage.getItem('arcade_player_avatar') || '🥷' : '🥷'}
+        onInviteAccepted={(rId) => {
+          setMode('online');
+          setMyRole('host');
+          setRoomId(rId);
+          setOnlineConnected(true);
+        }}
       />
 
       <div className="w-full max-w-[620px] mt-2.5 text-center text-xs text-slate-400">

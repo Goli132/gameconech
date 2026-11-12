@@ -14,6 +14,8 @@ import { PlayerNameModal } from './components/PlayerNameModal';
 import { LeaderboardModal } from './components/LeaderboardModal';
 import { InGameMenuModal } from './components/InGameMenuModal';
 import { InviteFriendModal } from './components/InviteFriendModal';
+import { OnlineLobbyModal } from './components/OnlineLobbyModal';
+import { IncomingInviteModal } from './components/IncomingInviteModal';
 import { SpaceShooterGame } from './games/SpaceShooterGame';
 import { SnakeGame } from './games/SnakeGame';
 import { BrickBreakerGame } from './games/BrickBreakerGame';
@@ -24,6 +26,7 @@ import { CoTuongGame } from './games/CoTuongGame';
 import { CustomEmbedGame } from './games/CustomEmbedGame';
 import { sound } from './audio/soundEffects';
 import { roomManager } from './multiplayer/roomManager';
+import { lobbyManager, GameInvitation } from './multiplayer/lobbyManager';
 import {
   Rocket,
   Trophy,
@@ -193,6 +196,10 @@ export default function App() {
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isInGameMenuOpen, setIsInGameMenuOpen] = useState(false);
   const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+  const [isOnlineLobbyOpen, setIsOnlineLobbyOpen] = useState(false);
+  const [incomingInvite, setIncomingInvite] = useState<GameInvitation | null>(null);
+  const [activeRoomId, setActiveRoomId] = useState<string | null>(null);
+  const [onlineOpponentName, setOnlineOpponentName] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(sound.getMuted());
 
   // Invite modal state
@@ -301,33 +308,72 @@ export default function App() {
     setIsMuted(newMuted);
   };
 
-  // Open invite friend modal from anywhere
+  // Listen for incoming match invitations across tabs/devices
+  useEffect(() => {
+    lobbyManager.onInviteReceived((invite) => {
+      setIncomingInvite(invite);
+    });
+  }, []);
+
+  // Sync player profile with online lobby presence
+  useEffect(() => {
+    const current = games.find(g => g.id === activeGame) || games[0];
+    lobbyManager.updateMyProfile(
+      playerName,
+      playerAvatar,
+      viewMode === 'game' ? 'in_game' : 'idle',
+      current?.title
+    );
+  }, [playerName, playerAvatar, viewMode, activeGame, games]);
+
+  // Open online lobby modal showing all currently active users on the website
   const handleOpenInvite = () => {
     const current = games.find(g => g.id === activeGame) || games[0];
-    if (activeGame === 'caro' || activeGame === 'cotuong') {
-      const { roomId, inviteUrl } = roomManager.createRoom(
-        activeGame as 'caro' | 'cotuong',
-        () => sound.playVictory(),
-        () => {}
-      );
-      setInviteData({
-        gameTitle: current.title,
-        inviteUrl,
-        roomId,
-        isConnected: false
-      });
-      setIsInviteModalOpen(true);
-    } else {
-      const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const url = `${origin}?game=${activeGame}`;
-      setInviteData({
-        gameTitle: current.title,
-        inviteUrl: url,
-        roomId: `game_${activeGame}`,
-        isConnected: true
-      });
-      setIsInviteModalOpen(true);
-    }
+    const targetGame = (activeGame === 'caro' || activeGame === 'cotuong') ? activeGame : 'caro';
+    const { roomId, inviteUrl } = roomManager.createRoom(
+      targetGame as 'caro' | 'cotuong',
+      () => sound.playVictory(),
+      () => {}
+    );
+    setActiveRoomId(roomId);
+    setInviteData({
+      gameTitle: current.title,
+      inviteUrl,
+      roomId,
+      isConnected: false
+    });
+    setIsOnlineLobbyOpen(true);
+  };
+
+  // When an invited opponent accepts your challenge
+  const handleLobbyInviteAccepted = (roomId: string, gameId: string, opponentName: string) => {
+    setActiveRoomId(roomId);
+    setActiveGame(gameId);
+    setOnlineOpponentName(opponentName);
+    setViewMode('game');
+  };
+
+  // When you accept an incoming challenge from another player
+  const handleAcceptIncomingInvite = (invite: GameInvitation) => {
+    lobbyManager.acceptInvite(invite);
+    setIncomingInvite(null);
+    setActiveRoomId(invite.roomId);
+    setActiveGame(invite.game);
+    setOnlineOpponentName(invite.fromName);
+    setViewMode('game');
+
+    // Connect to room as guest
+    roomManager.joinRoom(
+      invite.roomId,
+      () => sound.playVictory(),
+      () => {}
+    );
+  };
+
+  // When you decline an incoming challenge
+  const handleDeclineIncomingInvite = (invite: GameInvitation) => {
+    lobbyManager.declineInvite(invite);
+    setIncomingInvite(null);
   };
 
   // Filter games based on category and search query
@@ -603,15 +649,17 @@ export default function App() {
             </span>
           </button>
 
-          {/* Floating Online Invite Status (if joined room) */}
-          {initialRoom && activeGame === initialRoom.game && (
+          {/* Floating Online Match Status (if joined room) */}
+          {(activeRoomId || (initialRoom && activeGame === initialRoom.game)) && (
             <div className="fixed top-3 right-3 z-40 px-3 py-1.5 bg-slate-900/90 border border-emerald-500/40 rounded-xl flex items-center gap-2 text-xs text-emerald-300 backdrop-blur-md shadow-lg">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
-              <span className="hidden sm:inline">Phòng online:</span>
-              <span className="font-mono font-bold text-white">{initialRoom.roomId}</span>
+              <span className="hidden sm:inline">
+                {onlineOpponentName ? `Đấu cùng: ${onlineOpponentName}` : 'Phòng online:'}
+              </span>
+              <span className="font-mono font-bold text-white">{activeRoomId || initialRoom?.roomId}</span>
             </div>
           )}
 
@@ -660,7 +708,7 @@ export default function App() {
               <CaroGame
                 onGameOver={handleGameOver}
                 highScore={highScores.caro || 0}
-                initialRoomId={initialRoom?.game === 'caro' ? initialRoom.roomId : null}
+                initialRoomId={activeRoomId || (initialRoom?.game === 'caro' ? initialRoom.roomId : null)}
               />
             )}
 
@@ -668,7 +716,7 @@ export default function App() {
               <CoTuongGame
                 onGameOver={handleGameOver}
                 highScore={highScores.cotuong || 0}
-                initialRoomId={initialRoom?.game === 'cotuong' ? initialRoom.roomId : null}
+                initialRoomId={activeRoomId || (initialRoom?.game === 'cotuong' ? initialRoom.roomId : null)}
               />
             )}
 
@@ -732,7 +780,27 @@ export default function App() {
         }}
       />
 
-      {/* 3. Leaderboard Modal */}
+      {/* 3. Online Lobby Modal (Mời người đang đăng nhập trên website) */}
+      <OnlineLobbyModal
+        isOpen={isOnlineLobbyOpen}
+        onClose={() => setIsOnlineLobbyOpen(false)}
+        gameId={activeGame}
+        gameTitle={currentGame.title}
+        currentRoomId={activeRoomId || inviteData.roomId}
+        inviteUrl={inviteData.inviteUrl}
+        myUserName={playerName}
+        myUserAvatar={playerAvatar}
+        onInviteAccepted={handleLobbyInviteAccepted}
+      />
+
+      {/* 4. Real-time Incoming Challenge Modal */}
+      <IncomingInviteModal
+        invite={incomingInvite}
+        onAccept={handleAcceptIncomingInvite}
+        onDecline={handleDeclineIncomingInvite}
+      />
+
+      {/* 5. Leaderboard Modal */}
       <LeaderboardModal
         isOpen={isLeaderboardOpen}
         onClose={() => setIsLeaderboardOpen(false)}
@@ -742,7 +810,7 @@ export default function App() {
         playerAvatar={playerAvatar}
       />
 
-      {/* 4. Invite Friend Modal */}
+      {/* 6. Direct Invite Link Modal */}
       <InviteFriendModal
         isOpen={isInviteModalOpen}
         onClose={() => setIsInviteModalOpen(false)}
@@ -752,7 +820,7 @@ export default function App() {
         isConnected={inviteData.isConnected}
       />
 
-      {/* 5. Instructions Modal */}
+      {/* 7. Instructions Modal */}
       <InstructionsModal
         isOpen={isHelpOpen}
         onClose={() => setIsHelpOpen(false)}
@@ -761,13 +829,13 @@ export default function App() {
         onSelectDifficulty={(d) => setDifficulty(d)}
       />
 
-      {/* 6. Deployment Guide Modal */}
+      {/* 8. Deployment Guide Modal */}
       <DeploymentGuideModal
         isOpen={isGuideOpen}
         onClose={() => setIsGuideOpen(false)}
       />
 
-      {/* 7. Add Custom Game Modal */}
+      {/* 9. Add Custom Game Modal */}
       <AddGameModal
         isOpen={isAddGameOpen}
         onClose={() => setIsAddGameOpen(false)}
