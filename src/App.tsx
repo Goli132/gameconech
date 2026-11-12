@@ -7,6 +7,7 @@ import React, { useState, useEffect } from 'react';
 import { GameType, GameCategory, GameDifficulty, GameItem, HighScoreRecord } from './types';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { MobileBottomNav } from './components/MobileBottomNav';
 import { InstructionsModal } from './components/InstructionsModal';
 import { DeploymentGuideModal } from './components/DeploymentGuideModal';
 import { AddGameModal } from './components/AddGameModal';
@@ -97,7 +98,27 @@ const INITIAL_GAMES: GameItem[] = [
 ];
 
 export default function App() {
-  const [activeGame, setActiveGame] = useState<GameType>('space');
+  // Check URL query parameters for game invitations (e.g. ?game=caro&room=caro_abc123)
+  const [initialRoom] = useState<{ game: GameType; roomId: string } | null>(() => {
+    try {
+      if (typeof window !== 'undefined' && window.location.search) {
+        const params = new URLSearchParams(window.location.search);
+        const gameParam = params.get('game') as GameType;
+        const roomParam = params.get('room');
+        if (gameParam && (gameParam === 'caro' || gameParam === 'cotuong') && roomParam) {
+          return { game: gameParam, roomId: roomParam };
+        }
+      }
+    } catch {
+      // Ignore
+    }
+    return null;
+  });
+
+  const [activeGame, setActiveGame] = useState<GameType>(() => {
+    if (initialRoom) return initialRoom.game;
+    return 'space';
+  });
   const [difficulty, setDifficulty] = useState<GameDifficulty>('normal');
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isGuideOpen, setIsGuideOpen] = useState(false);
@@ -211,9 +232,9 @@ export default function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-5 flex flex-col items-center">
+      <main className="flex-1 w-full max-w-5xl mx-auto px-2 sm:px-4 py-2 sm:py-5 pb-24 md:pb-6 flex flex-col items-center">
         {/* Navigation Bar / Quick Switcher */}
-        <div className="w-full max-w-[620px] mb-4 flex items-center justify-between gap-2">
+        <div className="w-full max-w-[620px] mb-3 sm:mb-4 flex items-center justify-between gap-2">
           {/* View toggle (Chơi ngay / Thư viện game) */}
           <div className="flex items-center gap-1 p-1 bg-slate-900 border border-slate-800 rounded-xl">
             <button
@@ -253,7 +274,7 @@ export default function App() {
         {viewMode === 'play' && (
           <div className="w-full flex flex-col items-center">
             {/* Quick switcher buttons */}
-            <div className="w-full max-w-[620px] mb-4 overflow-x-auto pb-1 flex items-center gap-1.5">
+            <div className="w-full max-w-[620px] mb-3 sm:mb-4 overflow-x-auto no-scrollbar scroll-smooth pb-1 flex items-center gap-1.5 touch-pan-x">
               {games.map(g => {
                 const isActive = activeGame === g.id;
                 return (
@@ -274,6 +295,21 @@ export default function App() {
             </div>
 
             {/* Score & Difficulty Strip */}
+            {initialRoom && activeGame === initialRoom.game && (
+              <div className="w-full max-w-[600px] mb-3 px-3.5 py-2.5 bg-gradient-to-r from-emerald-950/70 to-cyan-950/70 border border-emerald-500/40 rounded-xl flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2 text-emerald-300 font-medium">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                  </span>
+                  <span>Đang vào phòng đấu bạn bè: <strong className="font-mono text-white">{initialRoom.roomId}</strong></span>
+                </div>
+                <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Phòng Online
+                </span>
+              </div>
+            )}
+
             <div className="w-full max-w-[600px] mb-3 flex items-center justify-between text-xs text-slate-400 px-3 py-2 bg-slate-900/60 border border-slate-800/60 rounded-xl">
               <div className="flex items-center gap-2">
                 <Trophy className="w-4 h-4 text-amber-400" />
@@ -336,6 +372,7 @@ export default function App() {
                 <CaroGame
                   onGameOver={handleGameOver}
                   highScore={highScores.caro || 0}
+                  initialRoomId={initialRoom?.game === 'caro' ? initialRoom.roomId : null}
                 />
               )}
 
@@ -343,6 +380,7 @@ export default function App() {
                 <CoTuongGame
                   onGameOver={handleGameOver}
                   highScore={highScores.cotuong || 0}
+                  initialRoomId={initialRoom?.game === 'cotuong' ? initialRoom.roomId : null}
                 />
               )}
 
@@ -519,6 +557,19 @@ export default function App() {
         isOpen={isAddGameOpen}
         onClose={() => setIsAddGameOpen(false)}
         onAddGame={handleAddNewGame}
+      />
+
+      {/* Mobile Bottom Navigation Bar (Thumb ergonomic zone) */}
+      <MobileBottomNav
+        activeGame={activeGame}
+        viewMode={viewMode}
+        onSelectGame={(g) => {
+          setActiveGame(g);
+          setViewMode('play');
+        }}
+        onSetViewMode={(m) => setViewMode(m)}
+        onOpenGuide={() => setIsGuideOpen(true)}
+        onOpenAddGame={() => setIsAddGameOpen(true)}
       />
     </div>
   );

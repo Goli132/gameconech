@@ -2,14 +2,34 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
-  body {
+  html, body {
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
 .game-canvas {
   touch-action: none;
+}
+
+/* Safe area padding utilities for mobile notches and home indicator */
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Hide scrollbar for mobile carousels while allowing smooth momentum touch scroll */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
